@@ -179,6 +179,8 @@ double Tracker::orientationToYaw(const geometry_msgs::Quaternion & q)
   tf2::fromMsg(q, tf_q);
   double roll, pitch, yaw;
   tf2::Matrix3x3(tf_q).getRPY(roll, pitch, yaw);
+  // Apriltag 's yaw need to add pi/2
+  yaw += M_PI_2;
   // Make yaw change continuous
   yaw = last_yaw_ + angles::shortest_angular_distance(last_yaw_, yaw);
   last_yaw_ = yaw;
