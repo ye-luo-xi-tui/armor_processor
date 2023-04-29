@@ -146,7 +146,7 @@ void ArmorProcessorNode::armorsCallback(
     ps.header = msg->header;
     ps.pose = armor.pose.pose.pose;
     try {
-      armors.push_back(Armor{.id = armor.id[0], .pose = tf2_buffer_->transform(ps, target_frame_).pose});
+      armors.push_back(Armor{.id = armor.id[0] % 10, .pose = tf2_buffer_->transform(ps, target_frame_).pose});
     } catch (const tf2::ExtrapolationException & ex) {
       ROS_ERROR("Error while transforming %s", ex.what());
       return;
