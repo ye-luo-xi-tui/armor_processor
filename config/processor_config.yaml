@@ -1,0 +1,9 @@
+armor_processor:
+  target_frame: odom
+  tracker:
+    max_match_distance: 0.2
+    tracking_threshold: 5
+    lost_threshold: 5
+  ekf:
+    q: [0.01, 0.01, 0.01, 0.02, 0.05, 0.05, 0.0001, 0.04, 0.001]
+    r: [0.1, 0.1, 0.1, 0.2]
