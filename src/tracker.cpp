@@ -85,8 +85,8 @@ void Tracker::update(const Armors & armors_msg)
   }
 
   // Prevent radius from spreading
-  if (target_state(8) < 0.2) {
-    target_state(8) = 0.2;
+  if (target_state(8) < 0.1) {
+    target_state(8) = 0.1;
     ekf.setState(target_state);
   } else if (target_state(8) > 0.4) {
     target_state(8) = 0.4;

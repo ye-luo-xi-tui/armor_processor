@@ -96,7 +96,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(ros::Duration(10));
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
   // subscriber and filter
-  armors_sub_.subscribe(nh, "/detector/armors", 10);
+  armors_sub_.subscribe(nh, "/tag_detections", 10);
   nh.param("target_frame", target_frame_,std::string("odom"));
   tf2_filter_ = std::make_shared<tf2_filter>(
     armors_sub_, *tf2_buffer_, target_frame_, 10, nullptr);
@@ -181,14 +181,18 @@ void ArmorProcessorNode::armorsCallback(
   last_time_ = time;
 
   const auto state = tracker_->target_state;
-  target_msg.target_pos.x = state(0);
-  target_msg.target_pos.y = state(1);
+  target_msg.target_pos.x = state(0) - state(8) * cos(state(3));
+  target_msg.target_pos.y = state(1) - state(8) * sin(state(3));
   target_msg.target_pos.z = state(2);
-  target_msg.target_vel.x = state(4);
-  target_msg.target_vel.y = state(5);
+  target_msg.target_vel.x = state(4) + state(7) * state(8) * sin(state(3));
+  target_msg.target_vel.y = state(5) - state(7) * state(8) * cos(state(3));
   target_msg.target_vel.z = state(6);
-  target.position = target_msg.target_pos;
-  target.velocity = target_msg.target_vel;
+  target.position.x = state(0);
+  target.position.y = state(1);
+  target.position.z = state(2);
+  target.velocity.x = state(4);
+  target.velocity.y = state(5);
+  target.velocity.z = state(6);
   target.yaw = state(3);
   target.v_yaw = state(7);
   target.radius_1 = state(8);
