@@ -1,6 +1,8 @@
 // Copyright 2022 Chen Jun
 #include "armor_processor/processor_node.hpp"
 
+#include <rm_msgs/TrackData.h>
+
 // STD
 #include <memory>
 #include <vector>
@@ -106,6 +108,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   // Publisher
   target_pub_ = nh.advertise<rm_msgs::TrackData>(
     "/track", 1);
+  entire_car_state_pub_ = nh.advertise<rm_msgs::EntireCarState>("entire_car_state", 1);
 
   // Visualization Marker Publisher
   // See http://wiki.ros.org/rviz/DisplayTypes/Marker
@@ -153,27 +156,27 @@ void ArmorProcessorNode::armorsCallback(
     }
   }
 
-  Target target;
+  rm_msgs::EntireCarState entire_car_state;
   rm_msgs::TrackData target_msg;
   ros::Time time = msg->header.stamp;
   target_msg.header.stamp = time;
-  target.header.stamp = time;
+  entire_car_state.header.stamp = time;
   target_msg.header.frame_id = target_frame_;
-  target.header.frame_id  = target_frame_;
+  entire_car_state.header.frame_id  = target_frame_;
 
   if (tracker_->tracker_state == Tracker::LOST) {
     tracker_->init(armors);
-    target.tracking = false;
+    entire_car_state.tracking = false;
   } else {
     dt_ = (time - last_time_).toSec();
     tracker_->update(armors);
 
     if (tracker_->tracker_state == Tracker::DETECTING) {
-      target.tracking = false;
+      entire_car_state.tracking = false;
     } else if (
       tracker_->tracker_state == Tracker::TRACKING ||
       tracker_->tracker_state == Tracker::TEMP_LOST) {
-      target.tracking = true;
+      entire_car_state.tracking = true;
       target_msg.id = tracker_->tracked_id;
     }
   }
@@ -187,34 +190,35 @@ void ArmorProcessorNode::armorsCallback(
   target_msg.target_vel.x = state(4) + state(7) * state(8) * sin(state(3));
   target_msg.target_vel.y = state(5) - state(7) * state(8) * cos(state(3));
   target_msg.target_vel.z = state(6);
-  target.position.x = state(0);
-  target.position.y = state(1);
-  target.position.z = state(2);
-  target.velocity.x = state(4);
-  target.velocity.y = state(5);
-  target.velocity.z = state(6);
-  target.yaw = state(3);
-  target.v_yaw = state(7);
-  target.radius_1 = state(8);
-  target.radius_2 = tracker_->last_r;
-  target.z_2 = tracker_->last_z;
+  entire_car_state.position.x = state(0);
+  entire_car_state.position.y = state(1);
+  entire_car_state.position.z = state(2);
+  entire_car_state.velocity.x = state(4);
+  entire_car_state.velocity.y = state(5);
+  entire_car_state.velocity.z = state(6);
+  entire_car_state.yaw = state(3);
+  entire_car_state.v_yaw = state(7);
+  entire_car_state.radius_1 = state(8);
+  entire_car_state.radius_2 = tracker_->last_r;
+  entire_car_state.z_2 = tracker_->last_z;
   target_pub_.publish(target_msg);
+  entire_car_state_pub_.publish(entire_car_state);
 
-  publishMarkers(target);
+  publishMarkers(entire_car_state);
 }
 
-void ArmorProcessorNode::publishMarkers(const Target & target)
+void ArmorProcessorNode::publishMarkers(const rm_msgs::EntireCarState & entire_car_state)
 {
-  position_marker_.header = target.header;
-  linear_v_marker_.header = target.header;
-  angular_v_marker_.header = target.header;
-  armors_marker_.header = target.header;
+  position_marker_.header = entire_car_state.header;
+  linear_v_marker_.header = entire_car_state.header;
+  angular_v_marker_.header = entire_car_state.header;
+  armors_marker_.header = entire_car_state.header;
 
-  if (target.tracking) {
+  if (entire_car_state.tracking) {
     auto state = tracker_->target_state;
-    double yaw = target.yaw, r1 = target.radius_1, r2 = target.radius_2;
-    double xc = target.position.x, yc = target.position.y, zc = target.position.z;
-    double z2 = target.z_2;
+    double yaw = entire_car_state.yaw, r1 = entire_car_state.radius_1, r2 = entire_car_state.radius_2;
+    double xc = entire_car_state.position.x, yc = entire_car_state.position.y, zc = entire_car_state.position.z;
+    double z2 = entire_car_state.z_2;
     position_marker_.action = visualization_msgs::Marker::ADD;
     position_marker_.pose.position.x = xc;
     position_marker_.pose.position.y = yc;

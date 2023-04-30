@@ -16,7 +16,6 @@
 
 #include "armor_processor/extended_kalman_filter.hpp"
 #include <apriltag_ros/AprilTagDetectionArray.h>
-#include <rm_msgs/TrackData.h>
 
 namespace rm_auto_aim
 {

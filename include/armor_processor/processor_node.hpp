@@ -12,6 +12,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <rm_msgs/EntireCarState.h>
 
 // STD
 #include <memory>
@@ -23,19 +24,6 @@
 namespace rm_auto_aim
 {
 using tf2_filter = tf2_ros::MessageFilter<apriltag_ros::AprilTagDetectionArray>;
-struct Target
-{
-  std_msgs::Header header;
-  std::string id;
-  bool tracking;
-  geometry_msgs::Point position;
-  double yaw;
-  geometry_msgs::Vector3 velocity;
-  double v_yaw;
-  double radius_1;
-  double radius_2;
-  double z_2;
-};
 class ArmorProcessorNode
 {
 public:
@@ -44,7 +32,7 @@ public:
 private:
   void armorsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg);
 
-  void publishMarkers(const Target & target);
+  void publishMarkers(const rm_msgs::EntireCarState & entire_car_state);
 
   // The time when the last message was received
   ros::Time last_time_;
@@ -62,6 +50,7 @@ private:
 
   // Publisher
   ros::Publisher target_pub_;
+  ros::Publisher entire_car_state_pub_;
 
   // Visualization marker publisher
   visualization_msgs::Marker position_marker_;
