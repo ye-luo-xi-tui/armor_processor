@@ -10,7 +10,7 @@
 #include <tf2_ros/transform_listener.h>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <apriltag_ros/AprilTagDetectionArray.h>
+#include <rm_msgs/TargetDetectionArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <rm_msgs/EntireCarState.h>
 
@@ -23,14 +23,14 @@
 
 namespace rm_auto_aim
 {
-using tf2_filter = tf2_ros::MessageFilter<apriltag_ros::AprilTagDetectionArray>;
+using tf2_filter = tf2_ros::MessageFilter<rm_msgs::TargetDetectionArray>;
 class ArmorProcessorNode
 {
 public:
   explicit ArmorProcessorNode(ros::NodeHandle& nh);
 
 private:
-  void armorsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg);
+  void armorsCallback(const rm_msgs::TargetDetectionArray::ConstPtr& msg);
 
   void publishMarkers(const rm_msgs::EntireCarState & entire_car_state);
 
@@ -45,7 +45,7 @@ private:
   std::string target_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf2_listener_;
-  message_filters::Subscriber<apriltag_ros::AprilTagDetectionArray> armors_sub_;
+  message_filters::Subscriber<rm_msgs::TargetDetectionArray> armors_sub_;
   std::shared_ptr<tf2_filter> tf2_filter_;
 
   // Publisher

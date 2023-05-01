@@ -98,7 +98,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(ros::Duration(10));
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
   // subscriber and filter
-  armors_sub_.subscribe(nh, "/tag_detections", 10);
+  armors_sub_.subscribe(nh, "/detection", 10);
   nh.param("target_frame", target_frame_,std::string("odom"));
   tf2_filter_ = std::make_shared<tf2_filter>(
     armors_sub_, *tf2_buffer_, target_frame_, 10, nullptr);
@@ -140,16 +140,20 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
 }
 
 void ArmorProcessorNode::armorsCallback(
-  const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
+  const rm_msgs::TargetDetectionArray::ConstPtr& msg)
 {
   // Tranform armor position from image frame to world coordinate
   Armors armors;
+  tf2::Transform t_t(tf2::Matrix3x3(0,-1,0,0,0,-1,1,0,0));
   for (auto & armor : msg->detections) {
     geometry_msgs::PoseStamped ps;
     ps.header = msg->header;
-    ps.pose = armor.pose.pose.pose;
+    ps.pose = armor.pose;
     try {
-      armors.push_back(Armor{.id = armor.id[0] % 10, .pose = tf2_buffer_->transform(ps, target_frame_).pose});
+        tf2_buffer_->transform(ps, ps,target_frame_);
+        tf2::Transform transform;
+        tf2::fromMsg(ps.pose,transform);
+        armors.push_back(Armor{.id = armor.id, .distance_to_image_center = armor.distance_to_image_center,.transform = transform * t_t});
     } catch (const tf2::ExtrapolationException & ex) {
       ROS_ERROR("Error while transforming %s", ex.what());
       return;

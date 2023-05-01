@@ -7,9 +7,7 @@
 #include <Eigen/Eigen>
 
 // ROS
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Quaternion.h>
-#include <geometry_msgs/Vector3.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 // STD
 #include <memory>
@@ -22,7 +20,8 @@ namespace rm_auto_aim
 struct Armor
 {
   int id;
-  geometry_msgs::Pose pose;
+  double distance_to_image_center;
+  tf2::Transform transform;
 };
 using Armors = std::vector<Armor>;
 class Tracker
@@ -55,7 +54,7 @@ private:
 
   void handleArmorJump(const Armor & a);
 
-  double orientationToYaw(const geometry_msgs::Quaternion & q);
+  double orientationToYaw(const tf2::Quaternion & q);
 
   Eigen::Vector3d getArmorPositionFromState(const Eigen::VectorXd & x);
 
