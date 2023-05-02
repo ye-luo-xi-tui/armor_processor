@@ -153,7 +153,13 @@ void ArmorProcessorNode::armorsCallback(
         tf2_buffer_->transform(ps, ps,target_frame_);
         tf2::Transform transform;
         tf2::fromMsg(ps.pose,transform);
-        armors.push_back(Armor{.id = armor.id, .distance_to_image_center = armor.distance_to_image_center,.transform = transform * t_t});
+        transform *= t_t;
+        geometry_msgs::TransformStamped transform_stamped;
+        transform_stamped.header = ps.header;
+        transform_stamped.transform = tf2::toMsg(transform);
+        transform_stamped.child_frame_id = "target" + std::to_string(armor.id);
+        br_.sendTransform(transform_stamped);
+        armors.push_back(Armor{.id = armor.id, .distance_to_image_center = armor.distance_to_image_center,.transform = transform});
     } catch (const tf2::ExtrapolationException & ex) {
       ROS_ERROR("Error while transforming %s", ex.what());
       return;
