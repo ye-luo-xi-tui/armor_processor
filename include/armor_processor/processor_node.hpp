@@ -12,7 +12,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <rm_msgs/EntireCarState.h>
+#include <rm_msgs/TrackData.h>
 
 // STD
 #include <memory>
@@ -32,7 +32,7 @@ public:
 private:
   void armorsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg);
 
-  void publishMarkers(const rm_msgs::EntireCarState & entire_car_state);
+  void publishMarkers(const rm_msgs::TrackData & track_data);
 
   // The time when the last message was received
   ros::Time last_time_;
@@ -49,8 +49,7 @@ private:
   std::shared_ptr<tf2_filter> tf2_filter_;
 
   // Publisher
-  ros::Publisher target_pub_;
-  ros::Publisher entire_car_state_pub_;
+  ros::Publisher track_pub_;
 
   // Visualization marker publisher
   visualization_msgs::Marker position_marker_;
