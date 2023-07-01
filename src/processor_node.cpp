@@ -146,7 +146,7 @@ void ArmorProcessorNode::armorsCallback(
     ps.header = msg->header;
     ps.pose = armor.pose.pose.pose;
     try {
-      armors.push_back(Armor{.id = armor.id[0] % 10, .pose = tf2_buffer_->transform(ps, target_frame_).pose});
+      armors.push_back(Armor{.id = armor.id[0] % 10, .type = "large",.pose = tf2_buffer_->transform(ps, target_frame_).pose});
     } catch (const tf2::ExtrapolationException & ex) {
       ROS_ERROR("Error while transforming %s", ex.what());
       return;
@@ -186,8 +186,8 @@ void ArmorProcessorNode::armorsCallback(
   track_data.yaw = state(3);
   track_data.v_yaw = state(7);
   track_data.radius_1 = state(8);
-  track_data.radius_2 = tracker_->last_r;
-  track_data.z_2 = tracker_->last_z;
+  track_data.radius_2 = tracker_->another_r;
+  track_data.dz = tracker_->dz;
   track_data.id = track_data.tracking ? tracker_->tracked_id : 0;
   track_pub_.publish(track_data);
 
@@ -205,11 +205,11 @@ void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData & track_data)
     auto state = tracker_->target_state;
     double yaw = track_data.yaw, r1 = track_data.radius_1, r2 = track_data.radius_2;
     double xc = track_data.position.x, yc = track_data.position.y, zc = track_data.position.z;
-    double z2 = track_data.z_2;
+    double dz = track_data.dz;
     position_marker_.action = visualization_msgs::Marker::ADD;
     position_marker_.pose.position.x = xc;
     position_marker_.pose.position.y = yc;
-    position_marker_.pose.position.z = (zc + z2) / 2;
+    position_marker_.pose.position.z = zc + dz / 2;
 
     linear_v_marker_.action = visualization_msgs::Marker::ADD;
     linear_v_marker_.points.clear();
@@ -229,16 +229,27 @@ void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData & track_data)
 
     armors_marker_.action = visualization_msgs::Marker::ADD;
     armors_marker_.points.clear();
+    int a_n = track_data.armors_num;
     geometry_msgs::Point p_a;
-    bool use_1 = true;
-    for (size_t i = 0; i < 4; i++) {
-      double tmp_yaw = yaw + i * M_PI_2;
-      double r = use_1 ? r1 : r2;
+    double r = 0;
+    bool is_current_pair = true;
+    for (int i = 0; i < 4; i++) {
+      double tmp_yaw = yaw + i * (2 * M_PI / a_n);
+      if(a_n == 4)
+      {
+          r = is_current_pair ? r1 : r2;
+          p_a.z = zc + (is_current_pair ? 0 : dz);
+          is_current_pair = !is_current_pair;
+      }
+      else
+      {
+          r = r1;
+          p_a.z = zc;
+      }
       p_a.x = xc - r * cos(tmp_yaw);
       p_a.y = yc - r * sin(tmp_yaw);
-      p_a.z = use_1 ? zc : z2;
+
       armors_marker_.points.emplace_back(p_a);
-      use_1 = !use_1;
     }
   } else {
     position_marker_.action = visualization_msgs::Marker::DELETE;
