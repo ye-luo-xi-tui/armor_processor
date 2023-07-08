@@ -188,6 +188,7 @@ void ArmorProcessorNode::armorsCallback(
   track_data.radius_1 = state(8);
   track_data.radius_2 = tracker_->another_r;
   track_data.dz = tracker_->dz;
+  track_data.armors_num = tracker_->armors_num;
   track_data.id = track_data.tracking ? tracker_->tracked_id : 0;
   track_pub_.publish(track_data);
 
