@@ -20,6 +20,7 @@ namespace rm_auto_aim
 struct Armor
 {
   int id;
+  std::string type;
   double distance_to_image_center;
   tf2::Transform transform;
 };
@@ -44,13 +45,16 @@ public:
 
   Armor tracked_armor;
   int tracked_id;
+  int armors_num;
   Eigen::VectorXd target_state;
 
   // To store another pair of armors message
-  double last_z, last_r;
+  double dz, another_r;
 
 private:
   void initEKF(const Armor & a);
+
+  void updateArmorsNum(const Armor & a);
 
   void handleArmorJump(const Armor & a);
 

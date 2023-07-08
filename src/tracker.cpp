@@ -45,6 +45,8 @@ void Tracker::init(const Armors & armors_msg)
 
   tracked_id = tracked_armor.id;
   tracker_state = DETECTING;
+
+  updateArmorsNum(tracked_armor);
 }
 
 void Tracker::update(const Armors & armors_msg)
@@ -146,22 +148,32 @@ void Tracker::initEKF(const Armor & a)
   double xc = xa + r * cos(yaw);
   double yc = ya + r * sin(yaw);
   double zc = za;
-  last_z = zc, last_r = r;
+  dz = zc, another_r = r;
   target_state << xc, yc, zc, yaw, 0, 0, 0, 0, r;
 
   ekf.setState(target_state);
 }
 
+void Tracker::updateArmorsNum(const rm_auto_aim::Armor &a)
+{
+    if (a.type == "large" && (tracked_id == 3 || tracked_id == 4 || tracked_id == 5))
+        armors_num = 2;
+    else if (tracked_id == 6)
+        armors_num = 3;
+    else
+        armors_num = 4;
+}
+
 void Tracker::handleArmorJump(const Armor & a)
 {
-  double last_yaw = target_state(3);
-  double yaw = orientationToYaw(a.transform.getRotation());
-
-  if (abs(yaw - last_yaw) > 0.4) {
-    last_z = target_state(2);
-    target_state(2) = a.transform.getOrigin().z();
+    double yaw = orientationToYaw(a.transform.getRotation());
     target_state(3) = yaw;
-    std::swap(target_state(8), last_r);
+    updateArmorsNum(a);
+    if (armors_num == 4)
+    {
+        dz = target_state(2) - a.transform.getOrigin().z();
+        target_state(2) = a.transform.getOrigin().z();
+        std::swap(target_state(8), another_r);
   }
 
   auto p = a.transform.getOrigin();
