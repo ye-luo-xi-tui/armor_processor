@@ -146,12 +146,17 @@ void ArmorProcessorNode::armorsCallback(
     geometry_msgs::PoseStamped ps;
     ps.header = msg->header;
     ps.pose = armor.pose;
+    tf2::Transform transform;
+    geometry_msgs::TransformStamped transform_stamped;
+    tf2::fromMsg(ps.pose,transform);
+    transform_stamped.header = ps.header;
+    transform_stamped.transform = tf2::toMsg(transform);
+    transform_stamped.child_frame_id = "target_origin" + std::to_string(armor.id);
+    br_.sendTransform(transform_stamped);
     try {
         tf2_buffer_->transform(ps, ps,target_frame_);
-        tf2::Transform transform;
         tf2::fromMsg(ps.pose,transform);
         transform *= t_t;
-        geometry_msgs::TransformStamped transform_stamped;
         transform_stamped.header = ps.header;
         transform_stamped.transform = tf2::toMsg(transform);
         transform_stamped.child_frame_id = "target" + std::to_string(armor.id);

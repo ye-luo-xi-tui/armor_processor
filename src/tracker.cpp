@@ -148,7 +148,7 @@ void Tracker::initEKF(const Armor & a)
   double xc = xa + r * cos(yaw);
   double yc = ya + r * sin(yaw);
   double zc = za;
-  dz = zc, another_r = r;
+  dz = 0, another_r = r;
   target_state << xc, yc, zc, yaw, 0, 0, 0, 0, r;
 
   ekf.setState(target_state);
@@ -174,7 +174,7 @@ void Tracker::handleArmorJump(const Armor & a)
         dz = target_state(2) - a.transform.getOrigin().z();
         target_state(2) = a.transform.getOrigin().z();
         std::swap(target_state(8), another_r);
-  }
+    }
 
   auto p = a.transform.getOrigin();
   Eigen::Vector3d current_p(p.x(), p.y(), p.z());
