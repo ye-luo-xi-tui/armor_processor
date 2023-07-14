@@ -53,7 +53,7 @@
   <depend>rm_msgs</depend>
   <depend>tf2_eigen</depend>
   <depend>visualization_msgs</depend>
-  <depend>apriltag_ros</depend>
+  <depend>tf2_ros</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -16,7 +16,7 @@ find_package(catkin REQUIRED
         rm_msgs
         tf2_eigen
         visualization_msgs
-        apriltag_ros
+        tf2_ros
         )
 
 
@@ -30,7 +30,7 @@ catkin_package(
         rm_msgs
         tf2_eigen
         visualization_msgs
-        apriltag_ros
+        tf2_ros
 )
 
 ###########
