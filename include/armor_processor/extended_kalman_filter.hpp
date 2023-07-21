@@ -6,7 +6,7 @@
 #include <Eigen/Dense>
 #include <functional>
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 class ExtendedKalmanFilter
 {
@@ -65,6 +65,6 @@ private:
   Eigen::VectorXd x_post;
 };
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor
 
 #endif  // ARMOR_PROCESSOR__KALMAN_FILTER_HPP_

@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh) : last_time_(0), dt_(0.0)
 {
@@ -98,6 +98,21 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh) : last_time_(0), dt_
   // Register a callback with tf2_ros::MessageFilter to be called when transforms are available
   tf2_filter_->registerCallback(&ArmorProcessorNode::armorsCallback, this);
 
+  // armor_filter
+  XmlRpc::XmlRpcValue filters;
+  if (nh.getParam("filters", filters))
+    for (int i = 0; i < filters.size(); ++i)
+    {
+      if (filters[i]["type"] == "height_filter")
+        armor_filters_.push_back(new HeightFilter(filters[i], tf2_buffer_));
+      else if (filters[i]["type"] == "distance_filter")
+        armor_filters_.push_back(new DistanceFilter(filters[i], tf2_buffer_));
+      else if (filters[i]["type"] == "id_filter")
+        armor_filters_.push_back(new IdFilter(filters[i]));
+      else
+        ROS_ERROR("Filter '%s' does not exist", filters[i].toXml().c_str());
+    }
+
   // Publisher
   track_pub_ = nh.advertise<rm_msgs::TrackData>("/track", 1);
 
@@ -167,6 +182,9 @@ void ArmorProcessorNode::armorsCallback(const rm_msgs::TargetDetectionArray::Con
       return;
     }
   }
+
+  for (auto& filter : armor_filters_)
+    filter->input(armors);
 
   rm_msgs::TrackData track_data;
   ros::Time time = msg->header.stamp;
@@ -291,4 +309,4 @@ void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData& track_data)
   marker_pub_.publish(marker_array);
 }
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor

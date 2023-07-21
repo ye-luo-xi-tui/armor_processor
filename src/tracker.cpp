@@ -6,15 +6,11 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/convert.h>
-
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
 // STD
 #include <cfloat>
-#include <memory>
 #include <string>
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 Tracker::Tracker(double max_match_distance, int tracking_threshold, int lost_threshold)
   : tracker_state(LOST)
@@ -182,7 +178,7 @@ void Tracker::initEKF(const Armor& a)
   ekf.setState(target_state);
 }
 
-void Tracker::updateArmorsNum(const rm_auto_aim::Armor& a)
+void Tracker::updateArmorsNum(const armor_processor::Armor& a)
 {
   if (a.type == "large" && (tracked_id == 3 || tracked_id == 4 || tracked_id == 5))
     armors_num = 2;
@@ -242,4 +238,4 @@ Eigen::Vector3d Tracker::getArmorPositionFromState(const Eigen::VectorXd& x)
   return Eigen::Vector3d(xa, ya, zc);
 }
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor

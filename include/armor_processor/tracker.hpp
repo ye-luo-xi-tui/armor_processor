@@ -14,7 +14,7 @@
 
 #include "armor_processor/extended_kalman_filter.hpp"
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 struct Armor
 {
@@ -73,6 +73,6 @@ private:
   double last_yaw_;
 };
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor
 
 #endif  // ARMOR_PROCESSOR__TRACKER_HPP_

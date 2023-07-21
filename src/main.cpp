@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "armor_processor");
   ros::NodeHandle nh("~");
-  auto* processor = new rm_auto_aim::ArmorProcessorNode(nh);
+  auto* processor = new armor_processor::ArmorProcessorNode(nh);
   while (ros::ok())
   {
     ros::spinOnce();

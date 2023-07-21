@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
-#include "armor_processor/tracker.hpp"
+#include "armor_processor/armor_filter.h"
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 using tf2_filter = tf2_ros::MessageFilter<rm_msgs::TargetDetectionArray>;
 class ArmorProcessorNode
@@ -41,6 +41,9 @@ private:
 
   // Armor tracker
   std::unique_ptr<Tracker> tracker_;
+
+  // Armor filter
+  std::vector<LogicFilterBase*> armor_filters_;
 
   // Subscriber with tf2 message_filter
   std::string target_frame_;
@@ -61,6 +64,6 @@ private:
   ros::Publisher marker_pub_;
 };
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor
 
 #endif  // ARMOR_PROCESSOR__PROCESSOR_NODE_HPP_

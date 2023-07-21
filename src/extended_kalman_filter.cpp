@@ -2,7 +2,7 @@
 
 #include "armor_processor/extended_kalman_filter.hpp"
 
-namespace rm_auto_aim
+namespace armor_processor
 {
 ExtendedKalmanFilter::ExtendedKalmanFilter(const NonlinearFunc& f, const NonlinearFunc& h, const JacobianFunc& Jf,
                                            const JacobianFunc& Jh, const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R,
@@ -49,4 +49,4 @@ Eigen::MatrixXd ExtendedKalmanFilter::update(const Eigen::VectorXd& z)
   return x_post;
 }
 
-}  // namespace rm_auto_aim
+}  // namespace armor_processor
