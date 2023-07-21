@@ -8,28 +8,26 @@
 
 namespace rm_auto_aim
 {
-
 class ExtendedKalmanFilter
 {
 public:
   ExtendedKalmanFilter() = default;
 
-  using NonlinearFunc = std::function<Eigen::VectorXd(const Eigen::VectorXd &)>;
-  using JacobianFunc = std::function<Eigen::MatrixXd(const Eigen::VectorXd &)>;
+  using NonlinearFunc = std::function<Eigen::VectorXd(const Eigen::VectorXd&)>;
+  using JacobianFunc = std::function<Eigen::MatrixXd(const Eigen::VectorXd&)>;
 
-  explicit ExtendedKalmanFilter(
-    const NonlinearFunc & f, const NonlinearFunc & h, const JacobianFunc & Jf,
-    const JacobianFunc & Jh, const Eigen::MatrixXd & Q, const Eigen::MatrixXd & R,
-    const Eigen::MatrixXd & P0);
+  explicit ExtendedKalmanFilter(const NonlinearFunc& f, const NonlinearFunc& h, const JacobianFunc& Jf,
+                                const JacobianFunc& Jh, const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R,
+                                const Eigen::MatrixXd& P0);
 
   // Set the initial state
-  void setState(const Eigen::VectorXd & x0);
+  void setState(const Eigen::VectorXd& x0);
 
   // Compute a predicted state
   Eigen::MatrixXd predict();
 
   // Update the estimated state based on measurement
-  Eigen::MatrixXd update(const Eigen::VectorXd & z);
+  Eigen::MatrixXd update(const Eigen::VectorXd& z);
 
 private:
   // Process nonlinear vector function

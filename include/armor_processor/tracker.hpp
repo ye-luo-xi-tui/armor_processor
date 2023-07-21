@@ -29,11 +29,12 @@ class Tracker
 public:
   Tracker(double max_match_distance, int tracking_threshold, int lost_threshold);
 
-  void init(const Armors & armors_msg);
+  void init(const Armors& armors_msg);
 
-  void update(const Armors & armors_msg);
+  void update(const Armors& armors_msg);
 
-  enum State {
+  enum State
+  {
     LOST,
     DETECTING,
     TRACKING,
@@ -51,15 +52,15 @@ public:
   double dz, another_r;
 
 private:
-  void initEKF(const Armor & a);
+  void initEKF(const Armor& a);
 
-  void updateArmorsNum(const Armor & a);
+  void updateArmorsNum(const Armor& a);
 
-  void handleArmorJump(const Armor & a);
+  void handleArmorJump(const Armor& a);
 
-  double orientationToYaw(const tf2::Quaternion & q);
+  double orientationToYaw(const tf2::Quaternion& q);
 
-  Eigen::Vector3d getArmorPositionFromState(const Eigen::VectorXd & x);
+  Eigen::Vector3d getArmorPositionFromState(const Eigen::VectorXd& x);
 
   double max_match_distance_;
 

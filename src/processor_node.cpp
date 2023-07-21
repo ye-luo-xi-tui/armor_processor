@@ -1,24 +1,21 @@
 // Copyright 2022 Chen Jun
 #include "armor_processor/processor_node.hpp"
 
-
 // STD
 #include <memory>
 #include <vector>
 
 namespace rm_auto_aim
 {
-ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
-: last_time_(0), dt_(0.0)
+ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh) : last_time_(0), dt_(0.0)
 {
   ROS_INFO("Starting ProcessorNode!");
 
   // Tracker
-  ros::NodeHandle tracker_nh(nh,"tracker");
+  ros::NodeHandle tracker_nh(nh, "tracker");
   double max_match_distance = tracker_nh.param("max_match_distance", 0.2);
   int tracking_threshold = tracker_nh.param("tracking_threshold", 5);
   int lost_threshold = tracker_nh.param("lost_threshold", 5);
-
 
   tracker_ = std::make_unique<Tracker>(max_match_distance, tracking_threshold, lost_threshold);
 
@@ -27,7 +24,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   // state: xc, yc, zc, yaw, v_xc, v_yc, v_zc, v_yaw, r
   // measurement: xa, ya, za, yaw
   // f - Process function
-  auto f = [this](const Eigen::VectorXd & x) {
+  auto f = [this](const Eigen::VectorXd& x) {
     Eigen::VectorXd x_new = x;
     x_new(0) += x(4) * dt_;
     x_new(1) += x(5) * dt_;
@@ -36,12 +33,12 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
     return x_new;
   };
   // J_f - Jacobian of process function
-  auto j_f = [this](const Eigen::VectorXd &) {
+  auto j_f = [this](const Eigen::VectorXd&) {
     Eigen::MatrixXd f(9, 9);
     // clang-format off
     f <<  1,   0,   0,   0,   dt_, 0,   0,   0,   0,
           0,   1,   0,   0,   0,   dt_, 0,   0,   0,
-          0,   0,   1,   0,   0,   0,   dt_, 0,   0, 
+          0,   0,   1,   0,   0,   0,   dt_, 0,   0,
           0,   0,   0,   1,   0,   0,   0,   dt_, 0,
           0,   0,   0,   0,   1,   0,   0,   0,   0,
           0,   0,   0,   0,   0,   1,   0,   0,   0,
@@ -52,7 +49,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
     return f;
   };
   // h - Observation function
-  auto h = [](const Eigen::VectorXd & x) {
+  auto h = [](const Eigen::VectorXd& x) {
     Eigen::VectorXd z(4);
     double xc = x(0), yc = x(1), yaw = x(3), r = x(8);
     z(0) = xc - r * cos(yaw);  // xa
@@ -62,7 +59,7 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
     return z;
   };
   // J_h - Jacobian of observation function
-  auto j_h = [](const Eigen::VectorXd & x) {
+  auto j_h = [](const Eigen::VectorXd& x) {
     Eigen::MatrixXd h(4, 9);
     double yaw = x(3), r = x(8);
     // clang-format off
@@ -75,22 +72,20 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
     return h;
   };
   // Q - process noise covariance matrix
-  ros::NodeHandle ekf_nh(nh,"ekf");
-  auto q_v = ekf_nh.param(
-    "q", std::vector<double>{//xc  yc    zc    yaw   vxc   vyc   vzc   vyaw  r
-                                1e-2, 1e-2, 1e-2, 2e-2, 5e-2, 5e-2, 1e-4, 4e-2, 1e-3});
+  ros::NodeHandle ekf_nh(nh, "ekf");
+  auto q_v = ekf_nh.param("q", std::vector<double>{ // xc  yc    zc    yaw   vxc   vyc   vzc   vyaw  r
+                                                    1e-2, 1e-2, 1e-2, 2e-2, 5e-2, 5e-2, 1e-4, 4e-2, 1e-3 });
   Eigen::DiagonalMatrix<double, 9> q;
   q.diagonal() << q_v[0], q_v[1], q_v[2], q_v[3], q_v[4], q_v[5], q_v[6], q_v[7], q_v[8];
   // R - measurement noise covariance matrix
-  auto r_v = ekf_nh.param(
-    "r", std::vector<double>{//xa  ya    za    yaw
-                                1e-1, 1e-1, 1e-1, 2e-1});
+  auto r_v = ekf_nh.param("r", std::vector<double>{ // xa  ya    za    yaw
+                                                    1e-1, 1e-1, 1e-1, 2e-1 });
   Eigen::DiagonalMatrix<double, 4> r;
   r.diagonal() << r_v[0], r_v[1], r_v[2], r_v[3];
   // P - error estimate covariance matrix
   Eigen::DiagonalMatrix<double, 9> p0;
   p0.setIdentity();
-  tracker_->ekf = ExtendedKalmanFilter{f, h, j_f, j_h, q, r, p0};
+  tracker_->ekf = ExtendedKalmanFilter{ f, h, j_f, j_h, q, r, p0 };
 
   // Subscriber with tf2 message_filter
   // tf2 relevant
@@ -98,9 +93,8 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
   // subscriber and filter
   armors_sub_.subscribe(nh, "/detection", 10);
-  nh.param("target_frame", target_frame_,std::string("odom"));
-  tf2_filter_ = std::make_shared<tf2_filter>(
-    armors_sub_, *tf2_buffer_, target_frame_, 10, nullptr);
+  nh.param("target_frame", target_frame_, std::string("odom"));
+  tf2_filter_ = std::make_shared<tf2_filter>(armors_sub_, *tf2_buffer_, target_frame_, 10, nullptr);
   // Register a callback with tf2_ros::MessageFilter to be called when transforms are available
   tf2_filter_->registerCallback(&ArmorProcessorNode::armorsCallback, this);
 
@@ -136,33 +130,39 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh)
   marker_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/processor/marker", 10);
 }
 
-void ArmorProcessorNode::armorsCallback(
-  const rm_msgs::TargetDetectionArray::ConstPtr& msg)
+void ArmorProcessorNode::armorsCallback(const rm_msgs::TargetDetectionArray::ConstPtr& msg)
 {
   // Tranform armor position from image frame to world coordinate
   Armors armors;
-  tf2::Transform t_t(tf2::Matrix3x3(0,-1,0,0,0,-1,1,0,0));
-  for (auto & armor : msg->detections) {
+  tf2::Transform t_t(tf2::Matrix3x3(0, -1, 0, 0, 0, -1, 1, 0, 0));
+  for (auto& armor : msg->detections)
+  {
     geometry_msgs::PoseStamped ps;
     ps.header = msg->header;
     ps.pose = armor.pose;
     tf2::Transform transform;
     geometry_msgs::TransformStamped transform_stamped;
-    tf2::fromMsg(ps.pose,transform);
+    tf2::fromMsg(ps.pose, transform);
     transform_stamped.header = ps.header;
     transform_stamped.transform = tf2::toMsg(transform);
     transform_stamped.child_frame_id = "target_origin" + std::to_string(armor.id);
     br_.sendTransform(transform_stamped);
-    try {
-        tf2_buffer_->transform(ps, ps,target_frame_);
-        tf2::fromMsg(ps.pose,transform);
-        transform *= t_t;
-        transform_stamped.header = ps.header;
-        transform_stamped.transform = tf2::toMsg(transform);
-        transform_stamped.child_frame_id = "target" + std::to_string(armor.id);
-        br_.sendTransform(transform_stamped);
-        armors.push_back(Armor{.id = armor.id, .type = armor.is_large_armor ? "large" : "small",.distance_to_image_center = armor.distance_to_image_center,.transform = transform});
-    } catch (const tf2::ExtrapolationException & ex) {
+    try
+    {
+      tf2_buffer_->transform(ps, ps, target_frame_);
+      tf2::fromMsg(ps.pose, transform);
+      transform *= t_t;
+      transform_stamped.header = ps.header;
+      transform_stamped.transform = tf2::toMsg(transform);
+      transform_stamped.child_frame_id = "target" + std::to_string(armor.id);
+      br_.sendTransform(transform_stamped);
+      armors.push_back(Armor{ .id = armor.id,
+                              .type = armor.is_large_armor ? "large" : "small",
+                              .distance_to_image_center = armor.distance_to_image_center,
+                              .transform = transform });
+    }
+    catch (const tf2::ExtrapolationException& ex)
+    {
       ROS_ERROR("Error while transforming %s", ex.what());
       return;
     }
@@ -171,20 +171,24 @@ void ArmorProcessorNode::armorsCallback(
   rm_msgs::TrackData track_data;
   ros::Time time = msg->header.stamp;
   track_data.header.stamp = time;
-  track_data.header.frame_id  = target_frame_;
+  track_data.header.frame_id = target_frame_;
 
-  if (tracker_->tracker_state == Tracker::LOST) {
+  if (tracker_->tracker_state == Tracker::LOST)
+  {
     tracker_->init(armors);
     track_data.tracking = false;
-  } else {
+  }
+  else
+  {
     dt_ = (time - last_time_).toSec();
     tracker_->update(armors);
 
-    if (tracker_->tracker_state == Tracker::DETECTING) {
+    if (tracker_->tracker_state == Tracker::DETECTING)
+    {
       track_data.tracking = false;
-    } else if (
-      tracker_->tracker_state == Tracker::TRACKING ||
-      tracker_->tracker_state == Tracker::TEMP_LOST) {
+    }
+    else if (tracker_->tracker_state == Tracker::TRACKING || tracker_->tracker_state == Tracker::TEMP_LOST)
+    {
       track_data.tracking = true;
     }
   }
@@ -210,14 +214,15 @@ void ArmorProcessorNode::armorsCallback(
   publishMarkers(track_data);
 }
 
-void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData & track_data)
+void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData& track_data)
 {
   position_marker_.header = track_data.header;
   linear_v_marker_.header = track_data.header;
   angular_v_marker_.header = track_data.header;
   armors_marker_.header = track_data.header;
 
-  if (track_data.tracking) {
+  if (track_data.tracking)
+  {
     auto state = tracker_->target_state;
     double yaw = track_data.yaw, r1 = track_data.radius_1, r2 = track_data.radius_2;
     double xc = track_data.position.x, yc = track_data.position.y, zc = track_data.position.z;
@@ -249,25 +254,28 @@ void ArmorProcessorNode::publishMarkers(const rm_msgs::TrackData & track_data)
     geometry_msgs::Point p_a;
     double r = 0;
     bool is_current_pair = true;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
       double tmp_yaw = yaw + i * (2 * M_PI / a_n);
-      if(a_n == 4)
+      if (a_n == 4)
       {
-          r = is_current_pair ? r1 : r2;
-          p_a.z = zc + (is_current_pair ? 0 : dz);
-          is_current_pair = !is_current_pair;
+        r = is_current_pair ? r1 : r2;
+        p_a.z = zc + (is_current_pair ? 0 : dz);
+        is_current_pair = !is_current_pair;
       }
       else
       {
-          r = r1;
-          p_a.z = zc;
+        r = r1;
+        p_a.z = zc;
       }
       p_a.x = xc - r * cos(tmp_yaw);
       p_a.y = yc - r * sin(tmp_yaw);
 
       armors_marker_.points.emplace_back(p_a);
     }
-  } else {
+  }
+  else
+  {
     position_marker_.action = visualization_msgs::Marker::DELETE;
     linear_v_marker_.action = visualization_msgs::Marker::DELETE;
     angular_v_marker_.action = visualization_msgs::Marker::DELETE;

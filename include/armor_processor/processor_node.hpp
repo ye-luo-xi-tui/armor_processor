@@ -33,7 +33,7 @@ public:
 private:
   void armorsCallback(const rm_msgs::TargetDetectionArray::ConstPtr& msg);
 
-  void publishMarkers(const rm_msgs::TrackData & track_data);
+  void publishMarkers(const rm_msgs::TrackData& track_data);
 
   // The time when the last message was received
   ros::Time last_time_;

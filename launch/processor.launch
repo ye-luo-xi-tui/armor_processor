@@ -6,7 +6,7 @@
     <arg name="publish_tf" default="true"/>
     <arg name="camera_frame" default="camera_optical_frame"/>
     <arg name="camera_type" default="$(env CAMERA_TYPE)" doc="Camera type"/>
-    <arg name="image_topic" default="image_rect"/>
+    <arg name="image_topic" default="image_raw"/>
 
     <rosparam command="load" file="$(find armor_processor)/config/settings.yaml" ns="$(arg node_namespace)"/>
     <rosparam command="load" file="$(find armor_processor)/config/tags.yaml" ns="$(arg node_namespace)"/>
