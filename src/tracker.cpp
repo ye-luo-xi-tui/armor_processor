@@ -22,23 +22,11 @@ Tracker::Tracker(double max_match_distance, int tracking_threshold, int lost_thr
 {
 }
 
-void Tracker::init(const Armors& armors_msg)
+void Tracker::init(const Armor* armor)
 {
-  if (armors_msg.empty())
-  {
+  if (armor == nullptr)
     return;
-  }
-  // Simply choose the armor that is closest to image center
-  double min_distance = DBL_MAX;
-  tracked_armor = armors_msg[0];
-  for (const auto& armor : armors_msg)
-  {
-    if (armor.distance_to_image_center < min_distance)
-    {
-      min_distance = armor.distance_to_image_center;
-      tracked_armor = armor;
-    }
-  }
+  tracked_armor = *armor;
 
   initEKF(tracked_armor);
 
@@ -48,7 +36,7 @@ void Tracker::init(const Armors& armors_msg)
   updateArmorsNum(tracked_armor);
 }
 
-void Tracker::update(const Armors& armors_msg)
+void Tracker::update(const Armor* armor)
 {
   // KF predict
   Eigen::VectorXd ekf_prediction = ekf.predict();
@@ -57,28 +45,20 @@ void Tracker::update(const Armors& armors_msg)
   // Use KF prediction as default target state if no matched armor is found
   target_state = ekf_prediction;
 
-  if (!armors_msg.empty())
+  if (armor != nullptr)
   {
-    double min_position_diff = DBL_MAX;
     auto predicted_position = getArmorPositionFromState(ekf_prediction);
-    for (const auto& armor : armors_msg)
-    {
-      auto p = armor.transform.getOrigin();
-      Eigen::Vector3d position_vec(p.x(), p.y(), p.z());
-      // Difference of the current armor position and tracked armor's predicted position
-      double position_diff = (predicted_position - position_vec).norm();
-      if (position_diff < min_position_diff)
-      {
-        min_position_diff = position_diff;
-        tracked_armor = armor;
-      }
-    }
+    auto p = armor->transform.getOrigin();
+    Eigen::Vector3d position_vec(p.x(), p.y(), p.z());
+    // Difference of the current armor position and tracked armor's predicted position
+    double position_diff = (predicted_position - position_vec).norm();
+    tracked_armor = *armor;
 
-    if (min_position_diff < max_match_distance_)
+    if (position_diff < max_match_distance_)
     {
       // Matching armor found
       matched = true;
-      auto p = tracked_armor.transform.getOrigin();
+      p = tracked_armor.transform.getOrigin();
       // Update EKF
       double measured_yaw = orientationToYaw(tracked_armor.transform.getRotation());
       Eigen::Vector4d z(p.x(), p.y(), p.z(), measured_yaw);
@@ -87,16 +67,11 @@ void Tracker::update(const Armors& armors_msg)
     else
     {
       // Check if there is same id armor in current frame
-      for (const auto& armor : armors_msg)
+      if (armor->id == tracked_id)
       {
-        if (armor.id == tracked_id)
-        {
-          // Armor jump happens
-          matched = true;
-          tracked_armor = armor;
-          handleArmorJump(tracked_armor);
-          break;
-        }
+        // Armor jump happens
+        matched = true;
+        handleArmorJump(tracked_armor);
       }
     }
   }

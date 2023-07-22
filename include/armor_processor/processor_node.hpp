@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "armor_processor/armor_filter.h"
+#include "armor_processor/armor_selector.h"
 
 namespace armor_processor
 {
@@ -42,8 +43,8 @@ private:
   // Armor tracker
   std::unique_ptr<Tracker> tracker_;
 
-  // Armor filter
-  std::vector<LogicFilterBase*> armor_filters_;
+  std::vector<ArmorFilterBase*> armor_filters_;
+  std::vector<ArmorSelectorBase*> armor_selectors_;
 
   // Subscriber with tf2 message_filter
   std::string target_frame_;

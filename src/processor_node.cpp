@@ -112,6 +112,18 @@ ArmorProcessorNode::ArmorProcessorNode(ros::NodeHandle& nh) : last_time_(0), dt_
       else
         ROS_ERROR("Filter '%s' does not exist", filters[i].toXml().c_str());
     }
+  // armor_selector
+  XmlRpc::XmlRpcValue selectors;
+  if (nh.getParam("selectors", selectors))
+    for (int i = 0; i < selectors.size(); ++i)
+    {
+      if (selectors[i]["type"] == "closest_to_image_center")
+        armor_selectors_.push_back(new ClosestToImageCenterSelector());
+      else if (selectors[i]["type"] == "id_selector")
+        armor_selectors_.push_back(new IdSelector(selectors[i]));
+      else
+        ROS_ERROR("Selector '%s' does not exist", selectors[i].toXml().c_str());
+    }
 
   // Publisher
   track_pub_ = nh.advertise<rm_msgs::TrackData>("/track", 1);
@@ -185,6 +197,15 @@ void ArmorProcessorNode::armorsCallback(const rm_msgs::TargetDetectionArray::Con
 
   for (auto& filter : armor_filters_)
     filter->input(armors);
+  Armor* selected_armor = nullptr;
+  for (auto& selector : armor_selectors_)
+  {
+    if (selector->input(armors))
+    {
+      selected_armor = selector->output();
+      break;
+    }
+  }
 
   rm_msgs::TrackData track_data;
   ros::Time time = msg->header.stamp;
@@ -193,13 +214,13 @@ void ArmorProcessorNode::armorsCallback(const rm_msgs::TargetDetectionArray::Con
 
   if (tracker_->tracker_state == Tracker::LOST)
   {
-    tracker_->init(armors);
+    tracker_->init(selected_armor);
     track_data.tracking = false;
   }
   else
   {
     dt_ = (time - last_time_).toSec();
-    tracker_->update(armors);
+    tracker_->update(selected_armor);
 
     if (tracker_->tracker_state == Tracker::DETECTING)
     {

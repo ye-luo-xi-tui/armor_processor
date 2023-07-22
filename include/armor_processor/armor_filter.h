@@ -6,18 +6,18 @@
 
 namespace armor_processor
 {
-class LogicFilterBase
+class ArmorFilterBase
 {
 public:
-  explicit LogicFilterBase(XmlRpc::XmlRpcValue rpc_value);
-  LogicFilterBase(){};
+  explicit ArmorFilterBase(XmlRpc::XmlRpcValue rpc_value);
+  ArmorFilterBase(){};
   virtual void input(armor_processor::Armors& armors){};
 
 protected:
   double range_[2];
 };
 
-class HeightFilter : public LogicFilterBase
+class HeightFilter : public ArmorFilterBase
 {
 public:
   explicit HeightFilter(const XmlRpc::XmlRpcValue& rpc_value, std::shared_ptr<tf2_ros::Buffer> tf_buffer);
@@ -27,7 +27,7 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
-class DistanceFilter : public LogicFilterBase
+class DistanceFilter : public ArmorFilterBase
 {
 public:
   explicit DistanceFilter(const XmlRpc::XmlRpcValue& rpc_value, std::shared_ptr<tf2_ros::Buffer> tf_buffer);
@@ -37,7 +37,7 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
-class IdFilter : public LogicFilterBase
+class IdFilter : public ArmorFilterBase
 {
 public:
   explicit IdFilter(const XmlRpc::XmlRpcValue& rpc_value);

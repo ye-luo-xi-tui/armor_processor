@@ -3,7 +3,7 @@
 
 namespace armor_processor
 {
-LogicFilterBase::LogicFilterBase(XmlRpc::XmlRpcValue rpc_value)
+ArmorFilterBase::ArmorFilterBase(XmlRpc::XmlRpcValue rpc_value)
 {
   if (rpc_value.hasMember("range"))
   {
@@ -15,7 +15,7 @@ LogicFilterBase::LogicFilterBase(XmlRpc::XmlRpcValue rpc_value)
 }
 
 HeightFilter::HeightFilter(const XmlRpc::XmlRpcValue& rpc_value, std::shared_ptr<tf2_ros::Buffer> tf_buffer)
-  : LogicFilterBase(rpc_value), tf_buffer_(tf_buffer)
+  : ArmorFilterBase(rpc_value), tf_buffer_(tf_buffer)
 {
   ROS_INFO("Height filter add.");
 }
@@ -24,7 +24,7 @@ void HeightFilter::input(armor_processor::Armors& armors)
 }
 
 DistanceFilter::DistanceFilter(const XmlRpc::XmlRpcValue& rpc_value, std::shared_ptr<tf2_ros::Buffer> tf_buffer)
-  : LogicFilterBase(rpc_value), tf_buffer_(tf_buffer)
+  : ArmorFilterBase(rpc_value), tf_buffer_(tf_buffer)
 {
   ROS_INFO("Distance filter add.");
 }
@@ -32,7 +32,7 @@ void DistanceFilter::input(armor_processor::Armors& armors)
 {
 }
 
-IdFilter::IdFilter(const XmlRpc::XmlRpcValue& rpc_value) : LogicFilterBase()
+IdFilter::IdFilter(const XmlRpc::XmlRpcValue& rpc_value) : ArmorFilterBase()
 {
   if (rpc_value.hasMember("id"))
     id_ = (int)rpc_value["id"];

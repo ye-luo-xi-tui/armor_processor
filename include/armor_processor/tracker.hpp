@@ -1,7 +1,6 @@
 // Copyright 2022 Chen Jun
 
-#ifndef ARMOR_PROCESSOR__TRACKER_HPP_
-#define ARMOR_PROCESSOR__TRACKER_HPP_
+#pragma once
 
 // Eigen
 #include <Eigen/Eigen>
@@ -29,9 +28,9 @@ class Tracker
 public:
   Tracker(double max_match_distance, int tracking_threshold, int lost_threshold);
 
-  void init(const Armors& armors_msg);
+  void init(const Armor* armor);
 
-  void update(const Armors& armors_msg);
+  void update(const Armor* armor);
 
   enum State
   {
@@ -74,5 +73,3 @@ private:
 };
 
 }  // namespace armor_processor
-
-#endif  // ARMOR_PROCESSOR__TRACKER_HPP_
