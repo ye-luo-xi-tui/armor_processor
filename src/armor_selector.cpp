@@ -33,4 +33,6 @@ bool IdSelector::input(armor_processor::Armors& armors)
     }
   return false;
 }
+
+Armor* ArmorSelectorBase::selected_armor_;
 }  // namespace armor_processor
