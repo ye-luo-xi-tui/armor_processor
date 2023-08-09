@@ -3,7 +3,16 @@ armor_processor:
   tracker:
     max_match_distance: 0.2
     tracking_threshold: 5
-    lost_threshold: 10
+    lost_threshold: 15
+  filters:
+    - type: id_filter
+      id: 6
+    - type: id_filter
+      id: 7
+  selectors:
+    - type: id_selector
+      id: 1
+    - type: closest_to_image_center
   ekf:
-    q: [0.001, 0.001, 0.01, 0.02, 0.01, 0.01, 0.0001, 0.04, 0.001]
-    r: [0.1, 0.1, 0.1, 20]
+    q: [0.01, 0.01, 0.01, 0.02, 0.05, 0.05, 0.0001, 0.04, 0.001]
+    r: [0.1, 0.1, 0.1, 0.2]
